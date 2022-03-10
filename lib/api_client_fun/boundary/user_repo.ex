@@ -1,4 +1,7 @@
 defmodule ApiClientFun.Boundary.UserRepo do
+  @moduledoc """
+  Server for managing user data
+  """
   use GenServer
 
   alias ApiClientFun.Core.{User, Profile}
