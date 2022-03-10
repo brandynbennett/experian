@@ -11,6 +11,7 @@ defmodule ApiClientFun.Boundary.UserTest do
       {:error, "profile_for_name/1 expects a string, got #{:foo}"}
     end)
 
-    User.profile_for_name(:foo)
+    assert User.profile_for_name(:foo) ==
+             {:error, "profile_for_name/1 expects a string, got #{:foo}"}
   end
 end
