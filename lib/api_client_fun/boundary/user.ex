@@ -3,7 +3,10 @@ defmodule ApiClientFun.Boundary.User do
 
   def profile_for_name(name) when is_binary(name) do
     {:ok, user_data} = user_service().list_users()
-    create_users(user_data["users"])
+
+    create_users(user_data)
+    |> Enum.find(&(&1.name == name))
+    |> Map.get(:profile)
   end
 
   def profile_for_name(name) do
@@ -24,8 +27,21 @@ defmodule ApiClientFun.Boundary.User do
   defp user_data_to_field_list(raw_data) do
     Map.keys(raw_data)
     |> Enum.reduce(Keyword.new(), fn key, acc ->
-      Keyword.put(acc, String.to_existing_atom(key), extract_value(key, raw_data[key]))
+      if field_allowed?(key) do
+        Keyword.put(acc, String.to_existing_atom(key), extract_value(key, raw_data[key]))
+      else
+        acc
+      end
     end)
+  end
+
+  defp field_allowed?(key) do
+    Enum.map(allowed_fields(), &Atom.to_string(&1))
+    |> Enum.member?(key)
+  end
+
+  defp allowed_fields do
+    Enum.concat(Map.keys(User.__struct__()), Map.keys(Profile.__struct__()))
   end
 
   defp extract_value("profile", value) do

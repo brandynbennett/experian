@@ -6,7 +6,7 @@ defmodule ApiClientFun.Services.User do
   @impl true
   def list_users do
     {:ok, response} = HTTPoison.get(@user_url, [], recv_timeout: 1000)
-    {:ok, Jason.decode!(response.body)}
+    {:ok, Jason.decode!(response.body)["users"]}
   end
 
   @impl true
