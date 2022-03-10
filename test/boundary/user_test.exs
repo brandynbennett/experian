@@ -31,4 +31,17 @@ defmodule ApiClientFun.Boundary.UserRepoTest do
     assert %Profile{age: 25, gender: "M", planet: "Earth", species: "Human", status: "Alive"} =
              UserRepo.profile_for_name("Philip J Fry")
   end
+
+  test "profile_for_name/1 returns server errors if no data" do
+    {:ok, pid} = UserRepo.new()
+
+    allow(ApiClientFun.Services.UserMock, self(), pid)
+
+    ApiClientFun.Services.UserMock
+    |> expect(:list_users, fn ->
+      {:error, "Stuff broke"}
+    end)
+
+    assert {:error, "Stuff broke"} = UserRepo.profile_for_name("Philip J Fry")
+  end
 end

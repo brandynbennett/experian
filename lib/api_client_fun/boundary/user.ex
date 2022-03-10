@@ -20,20 +20,27 @@ defmodule ApiClientFun.Boundary.UserRepo do
   end
 
   @impl true
-  def handle_call({:profile_for_name, name}, _from, _users) when is_binary(name) do
-    {:ok, user_data} = user_service().list_users()
+  def handle_call({:profile_for_name, name}, _from, users) when is_binary(name) do
+    with {:ok, user_data} <- fetch_users() do
+      users = create_users(user_data)
+      profile = find_user_profile(users, name)
 
-    users = create_users(user_data)
+      {:reply, profile, users}
+    else
+      {:error, server_error} ->
+        {:reply, {:error, server_error}, users}
 
-    profile =
-      Enum.find(users, &(&1.name == name))
-      |> Map.get(:profile)
-
-    {:reply, profile, users}
+      anything_else ->
+        {:reply, {:error, anything_else}, users}
+    end
   end
 
   def handle_call({:profile_for_name, name}, _from, users) do
     {:reply, {:error, "profile_for_name/1 expects a string, got #{name}"}, users}
+  end
+
+  defp fetch_users do
+    user_service().list_users()
   end
 
   defp user_service do
@@ -73,4 +80,9 @@ defmodule ApiClientFun.Boundary.UserRepo do
   end
 
   defp extract_value(_key, value), do: value
+
+  defp find_user_profile(users, name) do
+    Enum.find(users, &(&1.name == name))
+    |> Map.get(:profile)
+  end
 end
