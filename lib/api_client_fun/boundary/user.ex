@@ -23,9 +23,9 @@ defmodule ApiClientFun.Boundary.UserRepo do
   def handle_call({:profile_for_name, name}, _from, users) when is_binary(name) do
     with {:ok, user_data} <- fetch_users() do
       users = create_users(user_data)
-      profile = find_user_profile(users, name)
 
-      {:reply, profile, users}
+      find_user_profile(users, name)
+      |> profile_response(name, users)
     else
       {:error, server_error} ->
         {:reply, {:error, server_error}, users}
@@ -83,6 +83,17 @@ defmodule ApiClientFun.Boundary.UserRepo do
 
   defp find_user_profile(users, name) do
     Enum.find(users, &(&1.name == name))
-    |> Map.get(:profile)
+    |> find_user_profile()
+  end
+
+  defp find_user_profile(%User{} = user), do: user.profile
+  defp find_user_profile(anything), do: anything
+
+  defp profile_response(nil, name, users) do
+    {:reply, {:error, "#{name} is not a user"}, users}
+  end
+
+  defp profile_response(profile, _name, users) do
+    {:reply, profile, users}
   end
 end
