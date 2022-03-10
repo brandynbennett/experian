@@ -1,5 +1,4 @@
 defmodule ApiClientFun.Services.UserBehaviour do
-  alias ApiClientFun.Core.Profile
-
-  @callback profile_for_name(String.t()) :: {:ok, Profile.t()} | {:error, String.t()}
+  @callback list_users() :: {:ok, list(map())} | {:error, String.t()}
+  @callback get_user(String.t()) :: {:ok, map()} | {:error, String.t()}
 end
