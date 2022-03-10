@@ -20,7 +20,7 @@ defmodule ApiClientFun.Boundary.UserRepo do
   end
 
   @impl true
-  def handle_call({:profile_for_name, name}, _from, users) when is_binary(name) do
+  def handle_call({:profile_for_name, name}, _from, [] = users) when is_binary(name) do
     with {:ok, user_data} <- fetch_users() do
       users = create_users(user_data)
 
@@ -33,6 +33,11 @@ defmodule ApiClientFun.Boundary.UserRepo do
       anything_else ->
         {:reply, {:error, anything_else}, users}
     end
+  end
+
+  def handle_call({:profile_for_name, name}, _from, users) when is_binary(name) do
+    find_user_profile(users, name)
+    |> profile_response(name, users)
   end
 
   def handle_call({:profile_for_name, name}, _from, users) do
